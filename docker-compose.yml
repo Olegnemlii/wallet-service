@@ -1,0 +1,45 @@
+version: "3.8"  
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      POSTGRES_HOST: postgres-wallet-service
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: walet-service
+    depends_on:
+      postgres-wallet-service:
+        condition: service_healthy 
+    networks:
+      - mynetwork
+
+  postgres-wallet-service:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: walet-service
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d walet-service"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mynetwork 
+
+networks:
+  mynetwork:
+    driver: bridge
+
+volumes:
+  postgres_data:
